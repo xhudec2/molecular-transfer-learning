@@ -11,3 +11,9 @@ To install dependencies use:
 ```bash
 uv sync
 ```
+
+# Data
+To download the datasets used in this repository, run:
+```bash
+./download_data.sh
+```
