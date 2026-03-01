@@ -28,7 +28,7 @@ def train() -> None:
         separate_valid_path="./data/SD_debug_subset_val.csv",
         id_column="CID",
         label_column_name="SD",
-        num_cores=(4, 0, 4),
+        num_cores=(7, 7, 7),
         use_standard_scaler=True,
     )
 
@@ -44,6 +44,7 @@ def train() -> None:
         logger=(MLFlowLogger("Pretraining", tracking_uri=URI)),
         deterministic=True,
     )
+    trainer.logger.log_hyperparams(hyperparams)
     trainer.fit(model, datamodule=dm)
 
 
