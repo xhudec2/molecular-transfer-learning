@@ -111,6 +111,7 @@ class GeometricDataModule(pl.LightningDataModule):
                 shuffle=shuffle,
                 num_workers=self.num_cores[0],
                 pin_memory=True,
+                drop_last=True,
             )
         return None
 
