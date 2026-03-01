@@ -20,7 +20,7 @@ class VGAEModule(pl.LightningModule):
         set_transformer_dropout: float = 0.0,
         lr: float = 0.001,
         batch_size: int = 32,
-        monitor_loss: str = "val_total_loss",
+        monitor_loss: str = "val/total_loss",
         use_batch_norm: bool = True,
         linear_output_size: int = 1,
     ):
@@ -112,26 +112,26 @@ class VGAEModule(pl.LightningModule):
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         train_total_loss, vgae_loss, task_loss = self._step(batch)
 
-        self.log("train_total_loss", train_total_loss, batch_size=self.batch_size)
-        self.log("train_vgae_loss", vgae_loss, batch_size=self.batch_size)
-        self.log("train_task_loss", task_loss, batch_size=self.batch_size)
+        self.log("train/total_loss", train_total_loss, batch_size=self.batch_size)
+        self.log("train/vgae_loss", vgae_loss, batch_size=self.batch_size)
+        self.log("train/task_loss", task_loss, batch_size=self.batch_size)
 
         return train_total_loss
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         val_total_loss, vgae_loss, task_loss = self._step(batch)
 
-        self.log("val_total_loss", val_total_loss, batch_size=self.batch_size)
-        self.log("val_vgae_loss", vgae_loss, batch_size=self.batch_size)
-        self.log("val_task_loss", task_loss, batch_size=self.batch_size)
+        self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
+        self.log("val/vgae_loss", vgae_loss, batch_size=self.batch_size)
+        self.log("val/task_loss", task_loss, batch_size=self.batch_size)
 
         return val_total_loss
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         test_total_loss, vgae_loss, task_loss = self._step(batch)
 
-        self.log("test_total_loss", test_total_loss, batch_size=self.batch_size)
-        self.log("test_vgae_loss", vgae_loss, batch_size=self.batch_size)
-        self.log("test_task_loss", task_loss, batch_size=self.batch_size)
+        self.log("test/total_loss", test_total_loss, batch_size=self.batch_size)
+        self.log("test/vgae_loss", vgae_loss, batch_size=self.batch_size)
+        self.log("test/task_loss", task_loss, batch_size=self.batch_size)
 
         return test_total_loss
