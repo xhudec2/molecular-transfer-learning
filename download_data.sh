@@ -2,8 +2,8 @@
 
 mkdir -p data
 
-gdown "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/qm7.csv" -O data/qm7.csv
-gdown "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv" -O data/Lipophilicity.csv
+uv run gdown "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/qm7.csv" -O data/qm7.csv
+uv run gdown "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv" -O data/Lipophilicity.csv
 
 # takes around 5-10 minutes
 git clone https://github.com/davidbuterez/mf-pcba.git
