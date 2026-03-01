@@ -86,7 +86,6 @@ class GraphMoleculeDataset(TorchDataset):
                 x=atom_feat[i],
                 edge_index=edge_index[i],
                 y=labels[i],
-                iden=ids[i],
             )
             for i in range(len(atom_feat))
         ]
