@@ -14,7 +14,7 @@ class VGAEModule(pl.LightningModule):
         graph_latent_dim: int = 256,
         max_num_atoms_in_mol: int = 124,
         num_layers: int = 3,
-        set_transformer_hidden_dim: int = 1024,
+        set_transformer_hidden_dim: int = 64,
         set_transformer_num_heads: int = 16,
         set_transformer_num_sabs: int = 2,
         set_transformer_dropout: float = 0.0,
