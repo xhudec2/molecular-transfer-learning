@@ -23,6 +23,7 @@ class VGAEModule(pl.LightningModule):
         monitor_loss: str = "val/total_loss",
         use_batch_norm: bool = True,
         linear_output_size: int = 1,
+        num_pretrain_epochs: int = 150,
     ):
         super().__init__()
         self.num_features = num_features
@@ -30,6 +31,7 @@ class VGAEModule(pl.LightningModule):
         self.batch_size = batch_size
         self.monitor_loss = monitor_loss
         self.use_batch_norm = use_batch_norm
+        self.num_pretrain_epochs = num_pretrain_epochs
 
         self.train_metrics = {}
         self.val_metrics = {}
@@ -53,6 +55,7 @@ class VGAEModule(pl.LightningModule):
         self.regressor = VGAERegressionHead(
             graph_latent_dim, use_batch_norm, linear_output_size
         )
+        self.epoch_counter = 0
 
     def forward(
         self,
@@ -61,6 +64,9 @@ class VGAEModule(pl.LightningModule):
         batch: torch.Tensor,
     ):
         z, graph_embeddings = self.backbone(x, edge_index, batch)
+        if self.epoch_counter < self.num_pretrain_epochs:
+            return z, graph_embeddings, None
+
         predictions = self.regressor(graph_embeddings)
         return z, graph_embeddings, predictions
 
@@ -84,9 +90,15 @@ class VGAEModule(pl.LightningModule):
         num_nodes = x.shape[0]
 
         z, graph_embeddings, predictions = self.forward(x, edge_index, batch_mapping)
+
         vgae_loss = self.backbone.gnn_model.recon_loss(z, edge_index)
         vgae_loss = vgae_loss + (1 / num_nodes) * self.backbone.gnn_model.kl_loss()
-        task_loss = F.mse_loss(torch.flatten(predictions), torch.flatten(y.float()))
+
+        if self.epoch_counter < self.num_pretrain_epochs:
+            task_loss = 0
+        else:
+            task_loss = F.mse_loss(torch.flatten(predictions), torch.flatten(y.float()))
+
         total_loss = vgae_loss + task_loss
         return total_loss, vgae_loss, task_loss, z, graph_embeddings, predictions
 
@@ -109,19 +121,25 @@ class VGAEModule(pl.LightningModule):
 
         return total_loss, vgae_loss, task_loss
 
+    def on_train_epoch_end(self) -> None:
+        self.epoch_counter += 1
+        super().on_train_epoch_end()
+
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         train_total_loss, vgae_loss, task_loss = self._step(batch)
 
+        if self.epoch_counter >= self.num_pretrain_epochs:
+            self.log("train/task_loss", task_loss, batch_size=self.batch_size)
+
         self.log("train/total_loss", train_total_loss, batch_size=self.batch_size)
         self.log("train/vgae_loss", vgae_loss, batch_size=self.batch_size)
-        self.log("train/task_loss", task_loss, batch_size=self.batch_size)
-
         return train_total_loss
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         val_total_loss, vgae_loss, task_loss = self._step(batch)
 
-        self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
+        if self.epoch_counter >= self.num_pretrain_epochs:
+            self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
         self.log("val/vgae_loss", vgae_loss, batch_size=self.batch_size)
         self.log("val/task_loss", task_loss, batch_size=self.batch_size)
 
