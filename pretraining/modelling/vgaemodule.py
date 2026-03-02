@@ -139,9 +139,10 @@ class VGAEModule(pl.LightningModule):
         val_total_loss, vgae_loss, task_loss = self._step(batch)
 
         if self.epoch_counter >= self.num_pretrain_epochs:
-            self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
+            self.log("val/task_loss", task_loss, batch_size=self.batch_size)
+        
+        self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
         self.log("val/vgae_loss", vgae_loss, batch_size=self.batch_size)
-        self.log("val/task_loss", task_loss, batch_size=self.batch_size)
 
         return val_total_loss
 
