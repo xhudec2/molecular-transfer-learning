@@ -2,14 +2,11 @@ from lightning.pytorch.loggers import MLFlowLogger
 import lightning as pl
 from pretraining.modelling import VGAEModule
 from pretraining.data import GeometricDataModule
-import mlflow
 from random import randint
 
 
 def train() -> None:
     SEED = randint(0, 2**32 - 1)
-    URI = "http://127.0.0.1:5000"
-    mlflow.set_tracking_uri(URI)
     pl.seed_everything(SEED)
 
     hyperparams = {
@@ -17,7 +14,9 @@ def train() -> None:
         "lr": 0.00005,
         "max_atom_num": 53,
         "seed": SEED,
-        "max_epochs": 200,
+        "max_epochs": 150,
+        "ckpt": None,
+        "experiment_name": ...
     }
 
     dm = GeometricDataModule(
@@ -31,20 +30,32 @@ def train() -> None:
         use_standard_scaler=True,
     )
 
-    model = VGAEModule(
-        num_features=hyperparams["max_atom_num"] + 27,
-        lr=hyperparams["lr"],
-        batch_size=hyperparams["batch_size"],
+    if hyperparams["ckpt"] is None:
+        model = VGAEModule(
+            num_features=hyperparams["max_atom_num"] + 27,
+            lr=hyperparams["lr"],
+            batch_size=hyperparams["batch_size"],
+        )
+    else:
+        model = VGAEModule.load_from_checkpoint(
+            hyperparams["ckpt"],
+            num_features=hyperparams["max_atom_num"] + 27,
+        )
+
+    mlflow_logger = MLFlowLogger(
+        experiment_name=hyperparams["experiment_name"],
+        tracking_uri="databricks",
+        log_model=True,
     )
 
     trainer = pl.Trainer(
-        accelerator="auto",
         max_epochs=hyperparams["max_epochs"],
-        logger=(MLFlowLogger("Pretraining", tracking_uri=URI)),
+        logger=mlflow_logger,
         deterministic=True,
+        enable_checkpointing=True,
     )
     trainer.logger.log_hyperparams(hyperparams)
-    trainer.fit(model, datamodule=dm)
+    trainer.fit(model, datamodule=dm, ckpt_path=hyperparams["ckpt"])
 
 
 if __name__ == "__main__":
