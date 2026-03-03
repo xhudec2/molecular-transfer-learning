@@ -55,7 +55,6 @@ class VGAEModule(pl.LightningModule):
         self.regressor = VGAERegressionHead(
             graph_latent_dim, use_batch_norm, linear_output_size
         )
-        self.epoch_counter = 0
 
     def forward(
         self,
@@ -64,7 +63,7 @@ class VGAEModule(pl.LightningModule):
         batch: torch.Tensor,
     ):
         z, graph_embeddings = self.backbone(x, edge_index, batch)
-        if self.epoch_counter < self.num_pretrain_epochs:
+        if self.current_epoch < self.num_pretrain_epochs:
             return z, graph_embeddings, None
 
         predictions = self.regressor(graph_embeddings)
@@ -94,7 +93,7 @@ class VGAEModule(pl.LightningModule):
         vgae_loss = self.backbone.gnn_model.recon_loss(z, edge_index)
         vgae_loss = vgae_loss + (1 / num_nodes) * self.backbone.gnn_model.kl_loss()
 
-        if self.epoch_counter < self.num_pretrain_epochs:
+        if self.current_epoch < self.num_pretrain_epochs:
             task_loss = 0
         else:
             task_loss = F.mse_loss(torch.flatten(predictions), torch.flatten(y.float()))
@@ -121,14 +120,10 @@ class VGAEModule(pl.LightningModule):
 
         return total_loss, vgae_loss, task_loss
 
-    def on_train_epoch_end(self) -> None:
-        self.epoch_counter += 1
-        super().on_train_epoch_end()
-
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         train_total_loss, vgae_loss, task_loss = self._step(batch)
 
-        if self.epoch_counter >= self.num_pretrain_epochs:
+        if self.current_epoch >= self.num_pretrain_epochs:
             self.log("train/task_loss", task_loss, batch_size=self.batch_size)
 
         self.log("train/total_loss", train_total_loss, batch_size=self.batch_size)
@@ -138,9 +133,9 @@ class VGAEModule(pl.LightningModule):
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         val_total_loss, vgae_loss, task_loss = self._step(batch)
 
-        if self.epoch_counter >= self.num_pretrain_epochs:
+        if self.current_epoch >= self.num_pretrain_epochs:
             self.log("val/task_loss", task_loss, batch_size=self.batch_size)
-        
+
         self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
         self.log("val/vgae_loss", vgae_loss, batch_size=self.batch_size)
 
