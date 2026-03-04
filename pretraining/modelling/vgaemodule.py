@@ -3,6 +3,13 @@ import lightning as pl
 import torch
 import torch.nn.functional as F
 from pretraining.modelling import VGAERegressionHead, VGAEBackbone
+from torchmetrics.regression import (
+    NormalizedRootMeanSquaredError,
+    MeanAbsoluteError,
+    R2Score,
+)
+from torchmetrics import MetricCollection
+from copy import deepcopy
 
 
 class VGAEModule(pl.LightningModule):
@@ -33,9 +40,14 @@ class VGAEModule(pl.LightningModule):
         self.use_batch_norm = use_batch_norm
         self.num_pretrain_epochs = num_pretrain_epochs
 
-        self.train_metrics = {}
-        self.val_metrics = {}
-        self.test_metrics = {}
+        metrics = {
+            "rmse": NormalizedRootMeanSquaredError(),
+            "mae": MeanAbsoluteError(),
+            "r2": R2Score(),
+        }
+        self.train_metrics = MetricCollection(deepcopy(metrics), prefix="train/")
+        self.val_metrics = MetricCollection(deepcopy(metrics), prefix="val/")
+        self.test_metrics = MetricCollection(deepcopy(metrics), prefix="test/")
         self.num_called_test = 1
 
         self.backbone = VGAEBackbone(
@@ -115,15 +127,17 @@ class VGAEModule(pl.LightningModule):
             task_loss,
             _,
             _,
-            _,
+            predictions,
         ) = self._batch_loss(x, edge_index, y, batch_mapping)
 
-        return total_loss, vgae_loss, task_loss
+        return total_loss, vgae_loss, task_loss, predictions
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
-        train_total_loss, vgae_loss, task_loss = self._step(batch)
+        train_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
 
         if self.current_epoch >= self.num_pretrain_epochs:
+            self.train_metrics.update(predictions, batch.y)
+            self.log_dict(self.train_metrics, batch_size=self.batch_size)
             self.log("train/task_loss", task_loss, batch_size=self.batch_size)
 
         self.log("train/total_loss", train_total_loss, batch_size=self.batch_size)
@@ -131,9 +145,11 @@ class VGAEModule(pl.LightningModule):
         return train_total_loss
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
-        val_total_loss, vgae_loss, task_loss = self._step(batch)
+        val_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
 
         if self.current_epoch >= self.num_pretrain_epochs:
+            self.val_metrics.update(predictions, batch.y)
+            self.log_dict(self.val_metrics, batch_size=self.batch_size)
             self.log("val/task_loss", task_loss, batch_size=self.batch_size)
 
         self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
@@ -142,10 +158,12 @@ class VGAEModule(pl.LightningModule):
         return val_total_loss
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
-        test_total_loss, vgae_loss, task_loss = self._step(batch)
+        test_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
 
         self.log("test/total_loss", test_total_loss, batch_size=self.batch_size)
         self.log("test/vgae_loss", vgae_loss, batch_size=self.batch_size)
         self.log("test/task_loss", task_loss, batch_size=self.batch_size)
+        self.test_metrics.update(predictions, batch.y)
+        self.log_dict(self.test_metrics, batch_size=self.batch_size)
 
         return test_total_loss
