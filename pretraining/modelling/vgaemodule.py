@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from pretraining.modelling import VGAERegressionHead, VGAEBackbone
 from torchmetrics.regression import (
-    NormalizedRootMeanSquaredError,
+    MeanSquaredError,
     MeanAbsoluteError,
     R2Score,
 )
@@ -41,7 +41,7 @@ class VGAEModule(pl.LightningModule):
         self.num_pretrain_epochs = num_pretrain_epochs
 
         metrics = {
-            "rmse": NormalizedRootMeanSquaredError(),
+            "rmse": MeanSquaredError(squared=False),
             "mae": MeanAbsoluteError(),
             "r2": R2Score(),
         }
@@ -137,7 +137,7 @@ class VGAEModule(pl.LightningModule):
 
         if self.current_epoch >= self.num_pretrain_epochs:
             self.train_metrics.update(predictions, batch.y)
-            self.log_dict(self.train_metrics, batch_size=self.batch_size)
+            self.log_dict(self.train_metrics, batch_size=self.batch_size, on_epoch=True)
             self.log("train/task_loss", task_loss, batch_size=self.batch_size)
 
         self.log("train/total_loss", train_total_loss, batch_size=self.batch_size)
