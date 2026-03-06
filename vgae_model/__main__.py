@@ -1,4 +1,5 @@
 from lightning.pytorch.loggers import CSVLogger
+from lightning.pytorch.callbacks import ModelCheckpoint
 import lightning as pl
 from vgae_model.modelling import VGAEModule
 from vgae_model.data import GeometricDataModule
@@ -17,6 +18,9 @@ def train() -> None:
         "max_epochs": 200,
         "num_pretrain_epochs": 150,
         "smiles_column": "neut-smiles",
+        "train_path": "./data/dr_splits/dr_train.csv",
+        "separate_valid_path": "./data/dr_splits/dr_val.csv",
+        "label_column_name": "DR",
         "ckpt": None,
     }
 
@@ -24,9 +28,9 @@ def train() -> None:
         batch_size=hyperparams["batch_size"],
         seed=hyperparams["seed"],
         max_atom_num=hyperparams["max_atom_num"],
-        train_path="./data/SD_splits/SD_train.csv",
-        separate_valid_path="./data/SD_splits/SD_val.csv",
-        label_column_name="SD",
+        train_path=hyperparams["train_path"],
+        separate_valid_path=hyperparams["separate_valid_path"],
+        label_column_name=hyperparams["label_column_name"],
         smiles_column=hyperparams["smiles_column"],
         num_cores=(7, 7, 7),
         use_standard_scaler=True,
@@ -49,12 +53,18 @@ def train() -> None:
         )
 
     logger = CSVLogger(save_dir=".")
+    checkpoint_callback = ModelCheckpoint(
+        monitor="val/mae",  # maybe something else?
+        save_top_k=1,
+    )
 
     trainer = pl.Trainer(
         max_epochs=hyperparams["max_epochs"],
         logger=logger,
+        callbacks=[checkpoint_callback],
         deterministic=True,
         enable_checkpointing=True,
+        log_every_n_steps=50,
     )
     trainer.logger.log_hyperparams(hyperparams)
     trainer.fit(model, datamodule=dm, ckpt_path=hyperparams["ckpt"])
