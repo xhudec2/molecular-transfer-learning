@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 from typing import Union, List, Optional
 
-from pretraining.data.transforms import (
+from vgae_model.data.transforms import (
     get_atom_constants,
     atom_features,
     remove_smiles_stereo,

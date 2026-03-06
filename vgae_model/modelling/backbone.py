@@ -3,8 +3,8 @@ from torch_geometric.nn.models import VGAE
 import torch.nn as nn
 import torch
 from torch_geometric.utils import to_dense_batch
-from pretraining.modelling.gcn import VariationalGCNEncoder
-from pretraining.modelling.set_transformer import SetTransformer
+from vgae_model.modelling.gcn import VariationalGCNEncoder
+from vgae_model.modelling.set_transformer import SetTransformer
 
 
 class VGAEBackbone(nn.Module):

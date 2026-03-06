@@ -2,7 +2,7 @@
 import lightning as pl
 import torch
 import torch.nn.functional as F
-from pretraining.modelling import VGAERegressionHead, VGAEBackbone
+from vgae_model.modelling import VGAERegressionHead, VGAEBackbone
 from torchmetrics.regression import (
     MeanSquaredError,
     MeanAbsoluteError,

@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 
 from typing import Union, List, Tuple, Optional
 
-from pretraining.data.dataset import GraphMoleculeDataset
+from vgae_model.data.dataset import GraphMoleculeDataset
 
 
 class GeometricDataModule(pl.LightningDataModule):
