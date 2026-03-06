@@ -23,6 +23,7 @@ class GraphMoleculeDataset(TorchDataset):
         max_atom_num: int,
         label_column_name: Union[str, List[str]],
         lbl_or_emb: str = "lbl",
+        smiles_column: str = "smiles",
         scaler: Optional[StandardScaler] = None,
         id_column: Optional[str] = None,
     ):
@@ -37,6 +38,7 @@ class GraphMoleculeDataset(TorchDataset):
         self.lbl_or_emb = lbl_or_emb
         self.scaler = scaler
         self.id_column = id_column
+        self.smiles_column = smiles_column
 
     def __len__(self):
         return len(self.df)
@@ -51,9 +53,7 @@ class GraphMoleculeDataset(TorchDataset):
             idx = [idx]
 
         selected = self.df.iloc[idx]
-        if self.id_column:
-            ids = selected[self.id_column].values
-        smiles = selected.smiles.values
+        smiles = selected[self.smiles_column].values
 
         targets = selected[self.label_column_name].values
 

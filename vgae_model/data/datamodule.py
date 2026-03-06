@@ -25,6 +25,7 @@ class GeometricDataModule(pl.LightningDataModule):
         num_cores: Tuple[int, int, int] = (12, 0, 12),
         label_column_name: Union[str, List[str]] = "SD",
         lbl_or_emb: str = "lbl",
+        smiles_column: str = "smiles",
         use_standard_scaler=False,
     ):
         super().__init__()
@@ -41,6 +42,7 @@ class GeometricDataModule(pl.LightningDataModule):
         self.label_column_name = label_column_name
         self.lbl_or_emb = lbl_or_emb
         self.id_column = id_column
+        self.smiles_column = smiles_column
 
         self.use_standard_scaler = use_standard_scaler
 
@@ -74,6 +76,7 @@ class GeometricDataModule(pl.LightningDataModule):
                 lbl_or_emb=self.lbl_or_emb,
                 scaler=self.scaler,
                 id_column=self.id_column,
+                smiles_column=self.smiles_column,
             )
 
             self.num_atom_features = self.dataset.num_atom_features
@@ -86,6 +89,7 @@ class GeometricDataModule(pl.LightningDataModule):
                 lbl_or_emb=self.lbl_or_emb,
                 scaler=self.scaler,
                 id_column=self.id_column,
+                smiles_column=self.smiles_column,
             )
 
         if self.separate_test_path:
@@ -96,6 +100,7 @@ class GeometricDataModule(pl.LightningDataModule):
                 lbl_or_emb=self.lbl_or_emb,
                 scaler=self.scaler,
                 id_column=self.id_column,
+                smiles_column=self.smiles_column,
             )
 
     def setup(self, stage: str = None):
