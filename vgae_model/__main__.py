@@ -1,5 +1,5 @@
 from lightning.pytorch.loggers import CSVLogger
-from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
 import lightning as pl
 from vgae_model.modelling import VGAEModule
 from vgae_model.data import GeometricDataModule
@@ -32,7 +32,7 @@ def train() -> None:
         separate_valid_path=hyperparams["separate_valid_path"],
         label_column_name=hyperparams["label_column_name"],
         smiles_column=hyperparams["smiles_column"],
-        num_cores=(7, 7, 7),
+        num_cores=(0, 0, 0),
         use_standard_scaler=True,
     )
 
@@ -55,13 +55,20 @@ def train() -> None:
     logger = CSVLogger(save_dir=".")
     checkpoint_callback = ModelCheckpoint(
         monitor="val/mae",  # maybe something else?
+        mode="min",
         save_top_k=1,
+    )
+
+    stopper = EarlyStopping(
+        monitor="val/mae",
+        mode="min",
+        patience=20,
     )
 
     trainer = pl.Trainer(
         max_epochs=hyperparams["max_epochs"],
         logger=logger,
-        callbacks=[checkpoint_callback],
+        callbacks=[checkpoint_callback, stopper],
         deterministic=True,
         enable_checkpointing=True,
         log_every_n_steps=50,
