@@ -66,7 +66,7 @@ def scaffold_split(
 def make_dr(path: Path) -> None:
     df = pd.read_csv(path)
     df = df.dropna()
-    df.to_csv(str(path).replace("sd", "dr"))
+    df.to_csv(str(path).replace("sd", "dr"), index=False)
 
 
 def main() -> None:
@@ -88,13 +88,12 @@ def main() -> None:
 
         split_dir = root / f"{prefix}_splits"
         split_dir.mkdir(exist_ok=True)
-        df.iloc[train_idx].to_csv(split_dir / f"{prefix}_train.csv")
-        df.iloc[val_idx].to_csv(split_dir / f"{prefix}_val.csv")
-        df.iloc[test_idx].to_csv(split_dir / f"{prefix}_test.csv")
+        df.iloc[train_idx].to_csv(split_dir / f"{prefix}_train.csv", index=False)
+        df.iloc[val_idx].to_csv(split_dir / f"{prefix}_val.csv", index=False)
+        df.iloc[test_idx].to_csv(split_dir / f"{prefix}_test.csv", index=False)
 
         if prefix == "sd":
-            split_dir = root / "dr_splits"
-            split_dir.mkdir(exist_ok=True)
+            (root / "dr_splits").mkdir(exist_ok=True)
             make_dr(split_dir / f"{prefix}_train.csv")
             make_dr(split_dir / f"{prefix}_val.csv")
             make_dr(split_dir / f"{prefix}_test.csv")

@@ -11,6 +11,8 @@ warnings.filterwarnings("ignore")
 
 
 RANDOM_SEED = 42
+# We use the same values as the authors of 
+# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics
 MAX_ATOM_NUM = 53
 MAX_ATOMS_IN_MOL = 124
 np.random.seed(RANDOM_SEED)
@@ -91,7 +93,7 @@ def remove_overlaps(datasets_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
             overlaps = df1.smiles.isin(df2.smiles)
             overlaps_all |= overlaps
             print(f"Found and removed {overlaps.sum()} overlapping smiles\n")
-        df1[~overlaps_all].to_csv(dfs[i])
+        df1[~overlaps_all].to_csv(dfs[i], index=False)
 
 
 def main() -> None:
@@ -103,7 +105,7 @@ def main() -> None:
             df = df.rename(columns={"neut-smiles": "smiles"})
         df = standardize_data(df, features[dataset.stem])
         df = deduplicate_data(df, features[dataset.stem])
-        df.to_csv(dataset)
+        df.to_csv(dataset, index=False)
     remove_overlaps(root)
 
 
