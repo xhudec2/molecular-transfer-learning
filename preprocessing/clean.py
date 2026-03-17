@@ -81,16 +81,17 @@ def deduplicate_data(df: pd.DataFrame, features: list[str]) -> pd.DataFrame:
 
 
 def remove_overlaps(datasets_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
-
     dfs = list(datasets_dir.glob("*.csv"))
     for i in range(len(dfs) - 1):
         df1 = pd.read_csv(dfs[i])
-        overlaps = np.zeros(len(df1), dtype=np.bool)
+        overlaps_all = np.zeros(len(df1), dtype=np.bool)
         for j in range(i + 1, len(dfs)):
+            print(f"Removing overlaps from {dfs[i].stem} and {dfs[j].stem}.")
             df2 = pd.read_csv(dfs[j])
-            overlaps |= df1.smiles.isin(df2.smiles)
-        print(f"Found and removed {overlaps.sum()} overlapping smiles\n")
-        df1[~overlaps].to_csv(dfs[i])
+            overlaps = df1.smiles.isin(df2.smiles)
+            overlaps_all |= overlaps
+            print(f"Found and removed {overlaps.sum()} overlapping smiles\n")
+        df1[~overlaps_all].to_csv(dfs[i])
 
 
 def main() -> None:
