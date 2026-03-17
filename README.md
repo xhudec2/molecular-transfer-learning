@@ -16,20 +16,22 @@ Install dependencies:
 
 ## Data
 
-Download the datasets used in this repository:
+To download the datasets used in this repository and preprocess them run:
 
-    ./download_data.sh
+    ./get_datasets.sh
+
+This creates train / val / test splits:
+- data/sd_splits
+- data/dr_splits
+- data/lipo_splits
+- data/qm7_splits
 
 Data sources used by the download script:
 - [QM7 (DeepChem)](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/qm7.csv)
 - [Lipophilicity (DeepChem)](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv)
 - PubChem AID 504329 SD/DR data is retrieved via the [mf-pcba repository](https://github.com/davidbuterez/mf-pcba/)
 
-Train / val / test splits are provided under:
-- data/sd_splits
-- data/dr_splits
-- data/lipo_splits
-- data/qm7_splits
+**Note**: This step is time consuming and takes around 40 minutes to run.
 
 ## Repository structure
 
@@ -81,7 +83,7 @@ Train / val / test splits are provided under:
 
 ## Experiments (how to run)
 
-All training/evaluation is run via the module entrypoint:
+The training/evaluation of the VGAE model is run via:
 
     uv run python -m vgae_model --help
 
