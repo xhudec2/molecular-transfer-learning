@@ -74,7 +74,7 @@ def finetune(hyperparams) -> None:
     dm = _get_datamodule(hyperparams)
     model = _get_model(hyperparams, dm.scaler)
 
-    logger = CSVLogger(save_dir=".", name=hyperparams["experiment_name"])
+    logger = CSVLogger(save_dir=".", version=hyperparams["experiment_name"])
     checkpoint_callback = ModelCheckpoint(
         monitor="val/rmse",
         mode="min",
@@ -107,7 +107,7 @@ def test(hyperparams) -> None:
 
     dm = _get_datamodule(hyperparams)
     model = _get_model(hyperparams, dm.scaler, testing=True)
-    logger = CSVLogger(save_dir=".", name=hyperparams["experiment_name"])
+    logger = CSVLogger(save_dir=".", version=hyperparams["experiment_name"])
     trainer = pl.Trainer(
         logger=logger,
         deterministic=True,
