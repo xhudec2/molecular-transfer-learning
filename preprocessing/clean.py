@@ -48,7 +48,7 @@ def standardize_data(df: pd.DataFrame, feature_cols: list[str]) -> pd.DataFrame:
     original_len = len(df)
     df["smiles"] = df["smiles"].apply(standardize_smiles)
     df = df[["smiles"] + feature_cols]
-    df = df.dropna()
+    df = df[~df["smiles"].isna()]
     df = df[df["smiles"].apply(get_max_atomic_number) <= MAX_ATOM_NUM]
     df = df[df["smiles"].apply(get_num_atoms) <= MAX_ATOMS_IN_MOL]
 
@@ -96,13 +96,13 @@ def remove_overlaps(datasets_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def main() -> None:
     root = Path("data")
-    features = [["SD", "DR"], ["exp"], ["u0_atom"]]
-    for dataset, feats in zip(root.glob("*.csv"), features):
+    features = {"SD": ["SD", "DR"], "Lipophilicity": ["exp"], "qm7": ["u0_atom"]}
+    for dataset in root.glob("*.csv"):
         df = pd.read_csv(dataset)
-        if dataset == "SD.csv":
+        if dataset.stem == "SD":
             df = df.rename(columns={"neut-smiles": "smiles"})
-        df = standardize_data(df, feats)
-        df = deduplicate_data(df, feats)
+        df = standardize_data(df, features[dataset.stem])
+        df = deduplicate_data(df, features[dataset.stem])
         df.to_csv(dataset)
     remove_overlaps(root)
 
