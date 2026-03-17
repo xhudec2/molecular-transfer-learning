@@ -22,7 +22,7 @@ class VGAEModule(pl.LightningModule):
         graph_latent_dim: int = 256,
         max_num_atoms_in_mol: int = 124,
         num_layers: int = 3,
-        set_transformer_hidden_dim: int = 64,
+        set_transformer_hidden_dim: int = 1024,
         set_transformer_num_heads: int = 16,
         set_transformer_num_sabs: int = 2,
         set_transformer_dropout: float = 0.0,
@@ -31,7 +31,6 @@ class VGAEModule(pl.LightningModule):
         monitor_loss: str = "train/total_loss",
         use_batch_norm: bool = True,
         linear_output_size: int = 1,
-        num_pretrain_epochs: int = 150,
         scaler=None,
     ):
         super().__init__()
@@ -40,7 +39,6 @@ class VGAEModule(pl.LightningModule):
         self.batch_size = batch_size
         self.monitor_loss = monitor_loss
         self.use_batch_norm = use_batch_norm
-        self.num_pretrain_epochs = num_pretrain_epochs
 
         metrics = {
             "rmse": MeanSquaredError(squared=False),
@@ -79,9 +77,6 @@ class VGAEModule(pl.LightningModule):
         batch: torch.Tensor,
     ):
         z, graph_embeddings = self.backbone(x, edge_index, batch)
-        if self.current_epoch < self.num_pretrain_epochs:
-            return z, graph_embeddings, None
-
         predictions = self.regressor(graph_embeddings)
         return z, graph_embeddings, predictions
 
@@ -111,10 +106,7 @@ class VGAEModule(pl.LightningModule):
         vgae_loss = self.backbone.gnn_model.recon_loss(z, edge_index)
         vgae_loss = vgae_loss + (1 / num_nodes) * self.backbone.gnn_model.kl_loss()
 
-        if self.current_epoch < self.num_pretrain_epochs:
-            task_loss = 0
-        else:
-            task_loss = F.mse_loss(torch.flatten(predictions), torch.flatten(y.float()))
+        task_loss = F.mse_loss(torch.flatten(predictions), torch.flatten(y.float()))
 
         total_loss = vgae_loss + task_loss
         return total_loss, vgae_loss, task_loss, z, graph_embeddings, predictions
@@ -141,13 +133,11 @@ class VGAEModule(pl.LightningModule):
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         train_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
 
-        if self.current_epoch >= self.num_pretrain_epochs:
-            preds = predictions * self.sd_ + self.mean_
-            y = batch.y * self.sd_ + self.mean_
-            self.train_metrics.update(preds, y)
-            self.log_dict(self.train_metrics, batch_size=self.batch_size, on_epoch=True)
-            self.log("train/task_loss", task_loss, batch_size=self.batch_size)
-
+        preds = predictions * self.sd_ + self.mean_
+        y = batch.y * self.sd_ + self.mean_
+        self.train_metrics.update(preds, y)
+        self.log_dict(self.train_metrics, batch_size=self.batch_size, on_epoch=True)
+        self.log("train/task_loss", task_loss, batch_size=self.batch_size)
         self.log("train/total_loss", train_total_loss, batch_size=self.batch_size)
         self.log("train/vgae_loss", vgae_loss, batch_size=self.batch_size)
         return train_total_loss
@@ -155,12 +145,11 @@ class VGAEModule(pl.LightningModule):
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         val_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
 
-        if self.current_epoch >= self.num_pretrain_epochs:
-            preds = predictions * self.sd_ + self.mean_
-            y = batch.y * self.sd_ + self.mean_
-            self.val_metrics.update(preds, y)
-            self.log_dict(self.val_metrics, batch_size=self.batch_size)
-            self.log("val/task_loss", task_loss, batch_size=self.batch_size)
+        preds = predictions * self.sd_ + self.mean_
+        y = batch.y * self.sd_ + self.mean_
+        self.val_metrics.update(preds, y)
+        self.log_dict(self.val_metrics, batch_size=self.batch_size)
+        self.log("val/task_loss", task_loss, batch_size=self.batch_size)
 
         self.log("val/total_loss", val_total_loss, batch_size=self.batch_size)
         self.log("val/vgae_loss", vgae_loss, batch_size=self.batch_size)

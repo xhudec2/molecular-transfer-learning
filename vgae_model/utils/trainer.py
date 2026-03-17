@@ -29,7 +29,6 @@ def _get_model(hyperparams, scaler, testing=False):
             num_features=hyperparams["max_atom_num"] + 27,
             lr=hyperparams["lr"],
             batch_size=hyperparams["batch_size"],
-            num_pretrain_epochs=hyperparams["num_pretrain_epochs"],
             scaler=scaler,
         )
 
@@ -38,7 +37,6 @@ def _get_model(hyperparams, scaler, testing=False):
         num_features=hyperparams["max_atom_num"] + 27,
         lr=hyperparams["lr"],
         batch_size=hyperparams["batch_size"],
-        num_pretrain_epochs=hyperparams["num_pretrain_epochs"],
         scaler=scaler,
     )
 
@@ -56,7 +54,7 @@ def pretrain(hyperparams) -> None:
 
     dm = _get_datamodule(hyperparams)
     model = _get_model(hyperparams, dm.scaler)
-    logger = CSVLogger(save_dir=".", name=hyperparams["experiment_name"])
+    logger = CSVLogger(save_dir=".", version=hyperparams["experiment_name"])
 
     trainer = pl.Trainer(
         max_epochs=hyperparams["max_epochs"],

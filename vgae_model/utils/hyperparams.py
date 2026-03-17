@@ -5,12 +5,12 @@ BASE_CONFIG = {
     "max_atom_num": 53,
     "max_epochs": 200,
     "num_cores": (15, 15, 15),
+    "smiles_column": "smiles",
     "ckpt": None,
 }
 
 LIPO = {
     "batch_size": 32,
-    "smiles_column": "smiles",
     "train_path": "./data/lipo_splits/lipo_train.csv",
     "separate_valid_path": "./data/lipo_splits/lipo_val.csv",
     "separate_test_path": "./data/lipo_splits/lipo_test.csv",
@@ -19,7 +19,6 @@ LIPO = {
 
 QM7 = {
     "batch_size": 32,
-    "smiles_column": "smiles",
     "train_path": "./data/qm7_splits/qm7_train.csv",
     "separate_valid_path": "./data/qm7_splits/qm7_val.csv",
     "separate_test_path": "./data/qm7_splits/qm7_test.csv",
@@ -28,7 +27,6 @@ QM7 = {
 
 DR = {
     "batch_size": 32,
-    "smiles_column": "neut-smiles",
     "train_path": "./data/dr_splits/dr_train.csv",
     "separate_valid_path": "./data/dr_splits/dr_val.csv",
     "separate_test_path": "./data/dr_splits/dr_test.csv",
@@ -37,10 +35,7 @@ DR = {
 
 SD = {
     "batch_size": 512,
-    "smiles_column": "neut-smiles",
-    "train_path": "./data/sd_splits/sd_train.csv",
-    "separate_valid_path": "./data/sd_splits/sd_val.csv",
-    "separate_test_path": "./data/sd_splits/sd_test.csv",
+    "train_path": "./data/SD.csv",
     "label_column_name": "SD",
 }
 
