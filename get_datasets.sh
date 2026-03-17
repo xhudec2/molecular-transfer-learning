@@ -13,3 +13,6 @@ mv data/AID504329/SD.csv data/SD.csv
 # cleanup
 rm -r data/AID504329
 rm -rf mf-pcba
+
+uv run python preprocessing/clean.py
+uv run python preprocessing/splits.py
