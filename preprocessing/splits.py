@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict
 from rdkit import Chem
+from rdkit.Chem.Scaffolds import MurckoScaffold
 import warnings
 from rdkit import RDLogger
 from pathlib import Path
@@ -16,7 +17,8 @@ np.random.seed(RANDOM_SEED)
 def get_scaffold(smiles: str) -> str:
     try:
         mol = Chem.MolFromSmiles(smiles)
-        scaffold = Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol(mol)
+        scaffold = MurckoScaffold.GetScaffoldForMol(mol)
+        scaffold = MurckoScaffold.MakeScaffoldGeneric(scaffold)
         scaffold_smiles = Chem.MolToSmiles(scaffold, canonical=True)
         if scaffold_smiles == "" or scaffold.GetNumAtoms() == 0:
             return "ACYCLIC"
@@ -64,12 +66,13 @@ def scaffold_split(
 def make_dr(path: Path) -> None:
     df = pd.read_csv(path)
     df = df.dropna()
-    df.to_csv(path.replace("sd", "dr"))
+    df.to_csv(str(path).replace("sd", "dr"))
 
 
 def main() -> None:
     root = Path("data")
     for path in root.glob("*.csv"):
+        print(f"Processing {path.stem}")
         prefix = path.stem.lower()[:4]
         df = pd.read_csv(path)
         df["scaffold"] = df["smiles"].apply(get_scaffold)
@@ -85,11 +88,13 @@ def main() -> None:
 
         split_dir = root / f"{prefix}_splits"
         split_dir.mkdir(exist_ok=True)
-        df[train_idx].to_csv(split_dir / f"{prefix}_train.csv")
-        df[val_idx].to_csv(split_dir / f"{prefix}_val.csv")
-        df[test_idx].to_csv(split_dir / f"{prefix}_test.csv")
+        df.iloc[train_idx].to_csv(split_dir / f"{prefix}_train.csv")
+        df.iloc[val_idx].to_csv(split_dir / f"{prefix}_val.csv")
+        df.iloc[test_idx].to_csv(split_dir / f"{prefix}_test.csv")
 
         if prefix == "sd":
+            split_dir = root / "dr_splits"
+            split_dir.mkdir(exist_ok=True)
             make_dr(split_dir / f"{prefix}_train.csv")
             make_dr(split_dir / f"{prefix}_val.csv")
             make_dr(split_dir / f"{prefix}_test.csv")

@@ -98,13 +98,12 @@ def main() -> None:
     root = Path("data")
     features = [["SD", "DR"], ["exp"], ["u0_atom"]]
     for dataset, feats in zip(root.glob("*.csv"), features):
-        path = root / dataset
-        df = pd.read_csv(path)
+        df = pd.read_csv(dataset)
         if dataset == "SD.csv":
             df = df.rename(columns={"neut-smiles": "smiles"})
         df = standardize_data(df, feats)
         df = deduplicate_data(df, feats)
-        df.to_csv(path)
+        df.to_csv(dataset)
     remove_overlaps(root)
 
 
