@@ -83,14 +83,16 @@ def main() -> None:
         overlap_vt = len(val_scaffolds & test_scaffolds)
         assert overlap_tv == 0 and overlap_tt == 0 and overlap_vt == 0
 
-        df[train_idx].to_csv(f"data/{prefix}_splits/{prefix}_train.csv")
-        df[val_idx].to_csv(f"data/{prefix}_splits/{prefix}_val.csv")
-        df[test_idx].to_csv(f"data/{prefix}_splits/{prefix}_test.csv")
+        split_dir = root / f"{prefix}_splits"
+        split_dir.mkdir(exist_ok=True)
+        df[train_idx].to_csv(split_dir / f"{prefix}_train.csv")
+        df[val_idx].to_csv(split_dir / f"{prefix}_val.csv")
+        df[test_idx].to_csv(split_dir / f"{prefix}_test.csv")
 
         if prefix == "sd":
-            make_dr(f"data/{prefix}_splits/{prefix}_train.csv")
-            make_dr(f"data/{prefix}_splits/{prefix}_val.csv")
-            make_dr(f"data/{prefix}_splits/{prefix}_test.csv")
+            make_dr(split_dir / f"{prefix}_train.csv")
+            make_dr(split_dir / f"{prefix}_val.csv")
+            make_dr(split_dir / f"{prefix}_test.csv")
 
 
 if __name__ == "__main__":
