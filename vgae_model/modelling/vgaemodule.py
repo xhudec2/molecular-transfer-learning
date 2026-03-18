@@ -51,7 +51,7 @@ class VGAEModule(pl.LightningModule):
             },
             prefix="val/",
         )
-        self.train_metrics = self.val_metrics.clone(prefix="val/")
+        self.train_metrics = self.val_metrics.clone(prefix="train/")
         self.test_metrics = self.val_metrics.clone(prefix="test/")
         self.num_called_test = 1
 
