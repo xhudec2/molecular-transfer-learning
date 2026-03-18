@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 from collections import defaultdict
 from rdkit import Chem
 from rdkit.Chem.Scaffolds import MurckoScaffold
@@ -7,7 +7,7 @@ import warnings
 from rdkit import RDLogger
 from pathlib import Path
 
-RDLogger.DisableLog("rdApp.*")
+RDLogger.DisableLog("rdApp.*")  # type: ignore[attr-defined]
 warnings.filterwarnings("ignore")
 
 RANDOM_SEED = 42
@@ -47,7 +47,9 @@ def scaffold_split(
     n_val = int(n_total * val_frac)
     n_test = int(n_total * test_frac)
 
-    train_idx, val_idx, test_idx = [], [], []
+    train_idx: list[int] = []
+    val_idx: list[int] = []
+    test_idx: list[int] = []
 
     for scaffold in scaffolds:
         indices = scaffold_to_indices[scaffold]

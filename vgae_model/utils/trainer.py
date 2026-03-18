@@ -6,9 +6,11 @@ from lightning.pytorch.callbacks import (
 import lightning as pl
 from vgae_model.modelling import VGAEModule, VGAERegressionHead
 from vgae_model.data import GeometricDataModule
+from typing import Any
+from sklearn.preprocessing import StandardScaler  # type: ignore
 
 
-def _get_datamodule(hyperparams) -> GeometricDataModule:
+def _get_datamodule(hyperparams: dict[str, Any]) -> GeometricDataModule:
     return GeometricDataModule(
         batch_size=hyperparams["batch_size"],
         seed=hyperparams["seed"],
@@ -23,7 +25,9 @@ def _get_datamodule(hyperparams) -> GeometricDataModule:
     )
 
 
-def _get_model(hyperparams, scaler, testing=False):
+def _get_model(
+    hyperparams: dict[str, Any], scaler: StandardScaler, testing: bool = False
+) -> VGAEModule:
     if hyperparams["ckpt"] is None:
         return VGAEModule(
             num_features=hyperparams["max_atom_num"] + 27,
@@ -48,7 +52,7 @@ def _get_model(hyperparams, scaler, testing=False):
     return model
 
 
-def pretrain(hyperparams) -> None:
+def pretrain(hyperparams: dict[str, Any]) -> None:
     if hyperparams["ckpt"] is not None:
         raise ValueError("Pretraining does not expect a checkpoint parameter.")
 
@@ -66,11 +70,13 @@ def pretrain(hyperparams) -> None:
         num_sanity_val_steps=0,
     )
 
+    assert trainer.logger is not None  # shutup mypy
+
     trainer.logger.log_hyperparams(hyperparams)
     trainer.fit(model, datamodule=dm)
 
 
-def finetune(hyperparams) -> None:
+def finetune(hyperparams: dict[str, Any]) -> None:
     dm = _get_datamodule(hyperparams)
     model = _get_model(hyperparams, dm.scaler)
 
@@ -97,11 +103,13 @@ def finetune(hyperparams) -> None:
         callbacks=[checkpoint_callback, stopper],
     )
 
+    assert trainer.logger is not None  # shutup mypy
+
     trainer.logger.log_hyperparams(hyperparams)
     trainer.fit(model, datamodule=dm)
 
 
-def test(hyperparams) -> None:
+def test(hyperparams: dict[str, Any]) -> None:
     if hyperparams["ckpt"] is None:
         raise ValueError("Testing expects a checkpoint, specify it using --ckpt=PATH.")
 
@@ -112,5 +120,8 @@ def test(hyperparams) -> None:
         logger=logger,
         deterministic=True,
     )
+
+    assert trainer.logger is not None  # shutup mypy
+
     trainer.logger.log_hyperparams(hyperparams)
     trainer.test(model, datamodule=dm)

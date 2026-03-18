@@ -1,10 +1,10 @@
 # https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/data_loading.py
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 import lightning as pl
 
-from torch_geometric.loader import DataLoader as GeometricDataLoader
-from sklearn.preprocessing import StandardScaler
+from torch_geometric.loader import DataLoader as GeometricDataLoader  # type: ignore
+from sklearn.preprocessing import StandardScaler  # type: ignore
 
 from typing import Union, List, Tuple, Optional
 
@@ -26,11 +26,11 @@ class GeometricDataModule(pl.LightningDataModule):
         label_column_name: Union[str, List[str]] = "SD",
         lbl_or_emb: str = "lbl",
         smiles_column: str = "smiles",
-        use_standard_scaler=False,
-    ):
+        use_standard_scaler: bool = False,
+    ) -> None:
         super().__init__()
         assert lbl_or_emb in [None, "lbl", "emb"]
-        self.dataset = None
+        self.dataset: None | GraphMoleculeDataset = None
         self.train_path = train_path
         self.batch_size = batch_size
         self.seed = seed
@@ -62,10 +62,10 @@ class GeometricDataModule(pl.LightningDataModule):
 
             self.scaler = scaler
 
-    def get_scaler(self):
+    def get_scaler(self) -> StandardScaler:
         return self.scaler
 
-    def prepare_data(self):
+    def prepare_data(self) -> None:
         self.val = None
         self.test = None
         if self.train_path:
@@ -103,12 +103,12 @@ class GeometricDataModule(pl.LightningDataModule):
                 smiles_column=self.smiles_column,
             )
 
-    def setup(self, stage: str = None):
+    def setup(self, stage: None | str = None) -> None:
         # Called on every GPU
         # Assumes prepare_data has been called
         self.train = self.dataset
 
-    def train_dataloader(self, shuffle=True):
+    def train_dataloader(self, shuffle: bool = True) -> GeometricDataLoader | None:
         if self.train:
             return GeometricDataLoader(
                 self.train,
@@ -120,7 +120,7 @@ class GeometricDataModule(pl.LightningDataModule):
             )
         return None
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> GeometricDataLoader:
         return GeometricDataLoader(
             self.val,
             self.batch_size,
@@ -129,7 +129,7 @@ class GeometricDataModule(pl.LightningDataModule):
             num_workers=0 if not self.num_cores else self.num_cores[1],
         )
 
-    def test_dataloader(self):
+    def test_dataloader(self) -> GeometricDataLoader | None:
         if self.test:
             return GeometricDataLoader(
                 self.test,

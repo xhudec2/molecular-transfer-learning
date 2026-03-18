@@ -1,8 +1,8 @@
 # https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
-from torch_geometric.nn.models import VGAE
+from torch_geometric.nn.models import VGAE  # type: ignore
 import torch.nn as nn
-import torch
-from torch_geometric.utils import to_dense_batch
+from torch import Tensor
+from torch_geometric.utils import to_dense_batch  # type: ignore
 from vgae_model.modelling.gcn import VariationalGCNEncoder
 from vgae_model.modelling.set_transformer import SetTransformer
 
@@ -22,7 +22,7 @@ class VGAEBackbone(nn.Module):
         set_transformer_dropout: float = 0.0,
         use_batch_norm: bool = True,
         linear_output_size: int = 1,
-    ):
+    ) -> None:
         super().__init__()
         self.num_features = num_features
 
@@ -39,16 +39,16 @@ class VGAEBackbone(nn.Module):
         self.graph_latent_dim = graph_latent_dim
         self.linear_output_size = linear_output_size
 
-        gnn_args = dict(
-            in_channels=num_features,
-            out_channels=node_latent_dim,
-            num_layers=self.num_layers,
-            intermediate_dim=self.gnn_intermediate_dim,
-            use_batch_norm=self.use_batch_norm,
-        )
-
         # VGAE
-        self.gnn_model = VGAE(VariationalGCNEncoder(**gnn_args))
+        self.gnn_model = VGAE(
+            VariationalGCNEncoder(
+                in_channels=num_features,
+                intermediate_dim=self.gnn_intermediate_dim,
+                use_batch_norm=self.use_batch_norm,
+                out_channels=node_latent_dim,
+                num_layers=self.num_layers,
+            )
+        )
 
         # aggr
         self.st = SetTransformer(
@@ -65,10 +65,10 @@ class VGAEBackbone(nn.Module):
 
     def forward(
         self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        batch: torch.Tensor,
-    ):
+        x: Tensor,
+        edge_index: Tensor,
+        batch: Tensor,
+    ) -> tuple[Tensor, Tensor]:
         # 1. Obtain node embeddings
         z = self.gnn_model.encode(x, edge_index)
 

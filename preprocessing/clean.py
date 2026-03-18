@@ -1,17 +1,17 @@
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 from rdkit import Chem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 import warnings
 from rdkit import RDLogger
 from pathlib import Path
 
-RDLogger.DisableLog("rdApp.*")
+RDLogger.DisableLog("rdApp.*")  # type: ignore[attr-defined]
 warnings.filterwarnings("ignore")
 
 
 RANDOM_SEED = 42
-# We use the same values as the authors of 
+# We use the same values as the authors of
 # https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics
 MAX_ATOM_NUM = 53
 MAX_ATOMS_IN_MOL = 124
@@ -82,7 +82,7 @@ def deduplicate_data(df: pd.DataFrame, features: list[str]) -> pd.DataFrame:
     return deduped_df
 
 
-def remove_overlaps(datasets_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
+def remove_overlaps(datasets_dir: Path) -> None:
     dfs = list(datasets_dir.glob("*.csv"))
     for i in range(len(dfs) - 1):
         df1 = pd.read_csv(dfs[i])

@@ -1,6 +1,7 @@
 # https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
 import torch.nn as nn
 import torch
+from torch import Tensor
 
 
 class VGAERegressionHead(nn.Module):
@@ -22,8 +23,8 @@ class VGAERegressionHead(nn.Module):
 
     def forward(
         self,
-        graph_embeddings: torch.Tensor,
-    ):
+        graph_embeddings: Tensor,
+    ) -> Tensor:
         if self.use_batch_norm:
             predictions = self.bn3(self.linear_output1(graph_embeddings)).relu()
         predictions = torch.flatten(self.linear_output2(predictions))

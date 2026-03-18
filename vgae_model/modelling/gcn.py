@@ -1,8 +1,9 @@
 # https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
-import torch_geometric
-from torch_geometric.nn import GCNConv, BatchNorm
+import torch_geometric  # type: ignore
+from torch_geometric.nn import GCNConv, BatchNorm  # type: ignore
 import torch.nn as nn
 import lightning as pl
+from torch import Tensor
 
 
 class VariationalGCNEncoder(pl.LightningModule):
@@ -18,7 +19,7 @@ class VariationalGCNEncoder(pl.LightningModule):
         self.use_batch_norm = use_batch_norm
         self.num_layers = num_layers
 
-        modules = []
+        modules: list[nn.Module | tuple[nn.Module, str]] = []
 
         for i in range(self.num_layers):
             if i == 0:
@@ -45,7 +46,7 @@ class VariationalGCNEncoder(pl.LightningModule):
         self.conv_mu = GCNConv(intermediate_dim, out_channels, cached=False)
         self.conv_logstd = GCNConv(intermediate_dim, out_channels, cached=False)
 
-    def forward(self, x, edge_index):
+    def forward(self, x: Tensor, edge_index: Tensor) -> tuple[Tensor, Tensor]:
         x = self.convs(x, edge_index)
 
         return self.conv_mu(x, edge_index), self.conv_logstd(x, edge_index)

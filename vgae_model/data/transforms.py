@@ -1,16 +1,16 @@
 # https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/chemprop_featurisation.py
 from rdkit import Chem
-from typing import Sequence, Dict
+from typing import Sequence, Any
 
 
-def remove_smiles_stereo(s):
+def remove_smiles_stereo(s: str) -> str:
     mol = Chem.MolFromSmiles(s)
     Chem.rdmolops.RemoveStereochemistry(mol)
 
     return Chem.MolToSmiles(mol)
 
 
-def onek_encoding_unk(value: int, choices: Sequence):
+def onek_encoding_unk(value: int, choices: Sequence[int]) -> list[int]:
     """
     Creates a one-hot encoding with an extra category for uncommon values.
     :param value: The value for which the encoding should be one.
@@ -27,9 +27,9 @@ def onek_encoding_unk(value: int, choices: Sequence):
 
 def atom_features(
     atom: Chem.rdchem.Atom,
-    features_constants: Dict[str, Sequence],
-    functional_groups=None,
-):
+    features_constants: dict[str, Sequence[int]],
+    functional_groups: None | list[int] = None,
+) -> list[float | int]:
     features = (
         onek_encoding_unk(atom.GetAtomicNum(), features_constants["atomic_num"])
         + onek_encoding_unk(atom.GetTotalDegree(), features_constants["degree"])
@@ -47,7 +47,7 @@ def atom_features(
     return features
 
 
-def get_atom_constants(max_atomic_num: int):
+def get_atom_constants(max_atomic_num: int) -> dict[str, Any]:
     return {
         "atomic_num": list(range(max_atomic_num)),
         "degree": [0, 1, 2, 3, 4, 5],

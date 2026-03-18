@@ -8,9 +8,12 @@ from torchmetrics.regression import (
     MeanAbsoluteError,
     R2Score,
 )
+from torch_geometric.data import Batch  # type: ignore
 from torchmetrics import MetricCollection
-from copy import deepcopy
 from math import sqrt
+from sklearn.preprocessing import StandardScaler  # type: ignore
+from torch import Tensor
+from lightning.pytorch.utilities.types import OptimizerLRSchedulerConfig
 
 
 class VGAEModule(pl.LightningModule):
@@ -31,7 +34,7 @@ class VGAEModule(pl.LightningModule):
         monitor_loss: str = "train/total_loss",
         use_batch_norm: bool = True,
         linear_output_size: int = 1,
-        scaler=None,
+        scaler: None | StandardScaler = None,
     ):
         super().__init__()
         self.num_features = num_features
@@ -40,14 +43,16 @@ class VGAEModule(pl.LightningModule):
         self.monitor_loss = monitor_loss
         self.use_batch_norm = use_batch_norm
 
-        metrics = {
-            "rmse": MeanSquaredError(squared=False),
-            "mae": MeanAbsoluteError(),
-            "r2": R2Score(),
-        }
-        self.train_metrics = MetricCollection(deepcopy(metrics), prefix="train/")
-        self.val_metrics = MetricCollection(deepcopy(metrics), prefix="val/")
-        self.test_metrics = MetricCollection(deepcopy(metrics), prefix="test/")
+        self.val_metrics = MetricCollection(
+            {
+                "rmse": MeanSquaredError(squared=False),
+                "mae": MeanAbsoluteError(),
+                "r2": R2Score(),
+            },
+            prefix="val/",
+        )
+        self.train_metrics = self.val_metrics.clone(prefix="val/")
+        self.test_metrics = self.val_metrics.clone(prefix="test/")
         self.num_called_test = 1
 
         self.backbone = VGAEBackbone(
@@ -67,20 +72,24 @@ class VGAEModule(pl.LightningModule):
         self.regressor = VGAERegressionHead(
             graph_latent_dim, use_batch_norm, linear_output_size
         )
-        self.mean_ = scaler.mean_.item()
-        self.sd_ = sqrt(scaler.var_.item())
+        if scaler is not None:
+            self.mean_ = scaler.mean_.item()
+            self.sd_ = sqrt(scaler.var_.item())
+        else:
+            self.mean_ = 0.0
+            self.sd_ = 1.0
 
     def forward(
         self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        batch: torch.Tensor,
-    ):
+        x: Tensor,
+        edge_index: Tensor,
+        batch: Tensor,
+    ) -> tuple[Tensor, Tensor, Tensor]:
         z, graph_embeddings = self.backbone(x, edge_index, batch)
         predictions = self.regressor(graph_embeddings)
         return z, graph_embeddings, predictions
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> OptimizerLRSchedulerConfig:
         opt = torch.optim.Adam(
             filter(lambda p: p.requires_grad, self.parameters()), lr=self.lr
         )
@@ -94,11 +103,11 @@ class VGAEModule(pl.LightningModule):
 
     def _batch_loss(
         self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        y: torch.Tensor = None,
-        batch_mapping: torch.Tensor | None = None,
-    ):
+        x: Tensor,
+        edge_index: Tensor,
+        y: Tensor,
+        batch_mapping: Tensor,
+    ) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
         num_nodes = x.shape[0]
 
         z, graph_embeddings, predictions = self.forward(x, edge_index, batch_mapping)
@@ -111,7 +120,7 @@ class VGAEModule(pl.LightningModule):
         total_loss = vgae_loss + task_loss
         return total_loss, vgae_loss, task_loss, z, graph_embeddings, predictions
 
-    def _step(self, batch: torch.Tensor):
+    def _step(self, batch: Batch) -> tuple[Tensor, Tensor, Tensor, Tensor]:
         x, edge_index, y, batch_mapping = (
             batch.x,
             batch.edge_index,
@@ -130,7 +139,7 @@ class VGAEModule(pl.LightningModule):
 
         return total_loss, vgae_loss, task_loss, predictions
 
-    def training_step(self, batch: torch.Tensor, batch_idx: int):
+    def training_step(self, batch: Batch, batch_idx: int) -> Tensor:
         train_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
 
         preds = predictions * self.sd_ + self.mean_
@@ -142,7 +151,7 @@ class VGAEModule(pl.LightningModule):
         self.log("train/vgae_loss", vgae_loss, batch_size=self.batch_size)
         return train_total_loss
 
-    def validation_step(self, batch: torch.Tensor, batch_idx: int):
+    def validation_step(self, batch: Batch, batch_idx: int) -> Tensor:
         val_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
 
         preds = predictions * self.sd_ + self.mean_
@@ -156,7 +165,7 @@ class VGAEModule(pl.LightningModule):
 
         return val_total_loss
 
-    def test_step(self, batch: torch.Tensor, batch_idx: int):
+    def test_step(self, batch: Batch, batch_idx: int) -> Tensor:
         test_total_loss, vgae_loss, task_loss, predictions = self._step(batch)
         preds = predictions * self.sd_ + self.mean_
         y = batch.y * self.sd_ + self.mean_

@@ -1,4 +1,5 @@
 from random import randint
+from typing import Any
 
 
 BASE_CONFIG = {
@@ -36,11 +37,15 @@ DR = {
 SD = {
     "batch_size": 512,
     "train_path": "./data/SD.csv",
+    "separate_valid_path": None,
+    "separate_test_path": None,
     "label_column_name": "SD",
 }
 
 
-def get_hparams(dataset, task, experiment_name, ckpt, lr):
+def get_hparams(
+    dataset: str, task: str, experiment_name: None | str, ckpt: None | str, lr: float
+) -> dict[str, Any]:
     SEED = randint(0, 2**32 - 1)
     hyperparams = BASE_CONFIG.copy()
     hyperparams["seed"] = SEED
