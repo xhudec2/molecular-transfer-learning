@@ -1,7 +1,7 @@
 [project]
 name = "molecular-transfer-learning"
 version = "0.1.0"
-description = "Add your description here"
+description = "A framework for molecular transfer learning using PyTorch Lightning, rdkit, and PyTorch Geometric."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
