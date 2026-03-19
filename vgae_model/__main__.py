@@ -1,4 +1,4 @@
-from vgae_model.utils import pretrain, finetune, test, get_hparams
+from vgae_model.utils import pretrain, finetune, test, get_hparams, optimize_lr
 import lightning as pl
 import torch
 import argparse
@@ -8,7 +8,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", choices=["sd", "dr", "lipo", "qm7"], required=True)
     parser.add_argument(
-        "--task", choices=["pretrain", "finetune", "test"], required=True
+        "--task", choices=["pretrain", "finetune", "test", "hpopt"], required=True
     )
     parser.add_argument("--lr", type=float, default=0.00005)
     parser.add_argument("--experiment-name", type=str, default=None)
@@ -28,6 +28,8 @@ def main() -> None:
             finetune(hyperparams)
         case "test":
             test(hyperparams)
+        case "hpopt":
+            optimize_lr(hyperparams)
 
 
 if __name__ == "__main__":

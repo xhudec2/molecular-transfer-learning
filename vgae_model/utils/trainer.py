@@ -8,6 +8,9 @@ from vgae_model.modelling import VGAEModule, VGAERegressionHead
 from vgae_model.data import GeometricDataModule
 from typing import Any
 from sklearn.preprocessing import StandardScaler  # type: ignore
+import optuna
+import matplotlib.pyplot as plt
+import os
 
 
 def _get_datamodule(hyperparams: dict[str, Any]) -> GeometricDataModule:
@@ -50,6 +53,68 @@ def _get_model(
             param.requires_grad = False
 
     return model
+
+
+def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
+    dm = _get_datamodule(hyperparams)
+
+    def objective(trial: optuna.trial.Trial) -> float:
+        lr = trial.suggest_float("lr", 1e-6, 0.0001, log=True)
+        trial_hyperparams = hyperparams.copy()
+        trial_hyperparams["lr"] = lr
+
+        model = _get_model(trial_hyperparams, dm.scaler)
+
+        stopper = EarlyStopping(
+            monitor="val/rmse",
+            mode="min",
+            patience=25,
+        )
+
+        trainer = pl.Trainer(
+            max_epochs=trial_hyperparams["max_epochs"],
+            logger=False,
+            deterministic=True,
+            enable_checkpointing=False,
+            log_every_n_steps=10,
+            num_sanity_val_steps=0,
+            callbacks=[stopper],
+            enable_progress_bar=False,
+        )
+
+        trainer.fit(model, datamodule=dm)
+        best_val_rmse = trainer.callback_metrics.get("val/rmse")
+        return best_val_rmse.item()
+
+    study = optuna.create_study(direction="minimize", study_name="lr_optimization")
+    study.optimize(objective, n_trials=n_trials)
+
+    print("\n--- Optuna Study Finished ---")
+    print(f"Number of finished trials: {len(study.trials)}")
+    print("Best trial:")
+    trial = study.best_trial
+
+    print(f"  Best Validation RMSE: {trial.value}")
+    print("  Best Params: ")
+    for key, value in trial.params.items():
+        print(f"    {key}: {value}")
+
+    fig, axes = plt.subplots(1, 1, figsize=(4, 4))
+    axes.plot([t.value for t in study.trials], "b-o", markersize=4)
+    axes.axhline(
+        study.best_value,
+        color="r",
+        linestyle="--",
+        label=f"Best: {study.best_value:.4f}",
+    )
+    axes.set_xlabel("Trial")
+    axes.set_ylabel("Validation RMSE")
+    axes.set_title("Optimization History")
+    axes.legend()
+    save_dir = f"lightning_logs/{hyperparams['experiment_name']}"
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = f"{save_dir}/hpopt.png"
+    fig.savefig(save_path, dpi=300, bbox_inches="tight")
 
 
 def pretrain(hyperparams: dict[str, Any]) -> None:

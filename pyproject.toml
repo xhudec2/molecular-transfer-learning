@@ -11,6 +11,8 @@ dependencies = [
     "lightning>=2.6.1",
     "mlflow>=3.10.0",
     "mypy>=1.19.1",
+    "optuna>=4.8.0",
+    "optuna-integration[pytorch-lightning]>=4.8.0",
     "pandas==2.3.1",
     "rdkit>=2025.9.5",
     "ruff>=0.15.6",
@@ -19,5 +21,4 @@ dependencies = [
     "seaborn>=0.13.2",
     "torch>=2.10.0",
     "torch-geometric>=2.7.0",
-    "umap-learn[plot]>=0.5.11",
 ]
