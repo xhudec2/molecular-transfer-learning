@@ -111,15 +111,16 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
     study = optuna.create_study(direction="minimize", study_name="lr_optimization")
     study.optimize(objective, n_trials=n_trials)
 
-    print("\n--- Optuna Study Finished ---")
-    print(f"Number of finished trials: {len(study.trials)}")
-    print("Best trial:")
-    trial = study.best_trial
+    save_dir = f"lightning_logs/{hyperparams['experiment_name']}"
+    os.makedirs(save_dir, exist_ok=True)
 
-    print(f"  Best Validation RMSE: {trial.value}")
-    print("  Best Params: ")
-    for key, value in trial.params.items():
-        print(f"    {key}: {value}")
+    with open(f"{save_dir}/best_trial.txt", "w") as f:
+        f.write(f"Number of finished trials: {len(study.trials)}")
+        f.write("Best trial:")
+        f.write(f"Best Validation RMSE: {study.best_value}\n")
+        f.write("Best Params:\n")
+        for key, value in study.best_trial.params.items():
+            f.write(f"  {key}: {value}\n")
 
     # plot creation
     fig, axes = plt.subplots(1, 1, figsize=(4, 4))
@@ -134,8 +135,6 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
     axes.set_ylabel("Validation RMSE")
     axes.set_title("Optimization History")
     axes.legend()
-    save_dir = f"lightning_logs/{hyperparams['experiment_name']}"
-    os.makedirs(save_dir, exist_ok=True)
     save_path = f"{save_dir}/hpopt.png"
     fig.savefig(save_path, dpi=300, bbox_inches="tight")
 
