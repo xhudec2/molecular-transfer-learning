@@ -115,8 +115,8 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
     os.makedirs(save_dir, exist_ok=True)
 
     with open(f"{save_dir}/best_trial.txt", "w") as f:
-        f.write(f"Number of finished trials: {len(study.trials)}")
-        f.write("Best trial:")
+        f.write(f"Number of finished trials: {len(study.trials)}\n")
+        f.write("Best trial:\n")
         f.write(f"Best Validation RMSE: {study.best_value}\n")
         f.write("Best Params:\n")
         for key, value in study.best_trial.params.items():
