@@ -101,6 +101,7 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
             num_sanity_val_steps=0,
             callbacks=[stopper],
             enable_progress_bar=False,
+            enable_model_summary=False,
         )
 
         trainer.fit(model, datamodule=dm)

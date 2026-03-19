@@ -24,7 +24,7 @@ LIPO = {
     "separate_valid_path": "./data/lipo_splits/lipo_val.csv",
     "separate_test_path": "./data/lipo_splits/lipo_test.csv",
     "label_column_name": "exp",
-    "monitor_loss": "train/val_rmse",
+    "monitor_loss": "val/rmse",
 }
 
 QM7 = {
@@ -33,7 +33,7 @@ QM7 = {
     "separate_valid_path": "./data/qm7_splits/qm7_val.csv",
     "separate_test_path": "./data/qm7_splits/qm7_test.csv",
     "label_column_name": "u0_atom",
-    "monitor_loss": "train/val_rmse",
+    "monitor_loss": "val/rmse",
 }
 
 DR = {
@@ -42,7 +42,7 @@ DR = {
     "separate_valid_path": "./data/dr_splits/dr_val.csv",
     "separate_test_path": "./data/dr_splits/dr_test.csv",
     "label_column_name": "DR",
-    "monitor_loss": "train/val_rmse",
+    "monitor_loss": "val/rmse",
 }
 
 SD = {
