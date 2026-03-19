@@ -18,7 +18,6 @@ def get_scaffold(smiles: str) -> str:
     try:
         mol = Chem.MolFromSmiles(smiles)
         scaffold = MurckoScaffold.GetScaffoldForMol(mol)
-        scaffold = MurckoScaffold.MakeScaffoldGeneric(scaffold)
         scaffold_smiles = Chem.MolToSmiles(scaffold, canonical=True)
         if scaffold_smiles == "" or scaffold.GetNumAtoms() == 0:
             return "ACYCLIC"
