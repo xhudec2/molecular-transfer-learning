@@ -1,4 +1,14 @@
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
+"""LightningModule for the VGAE training loop.
+
+The model consists of:
+- `VGAEBackbone`: a variational graph autoencoder producing node + graph embeddings
+- `VGAERegressionHead`: MLP head mapping graph embeddings to a scalar label
+
+The model also defines a loss function combining the VGAE reconstruction + KL divergence losses and the regression MSE loss.
+
+The code is based on https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
+"""
+
 import lightning as pl
 import torch
 import torch.nn.functional as F
@@ -17,6 +27,12 @@ from lightning.pytorch.utilities.types import OptimizerLRSchedulerConfig
 
 
 class VGAEModule(pl.LightningModule):
+    """VGAE backbone + regression head with Lightning training/validation/test steps.
+
+    Note that the `set_transformer_hidden_dim` value is actually the hidden_dim * num_heads,
+    we kept the name the same to stay consistent to https://www.nature.com/articles/s41467-024-45566-8
+    """
+
     def __init__(
         self,
         num_features: int,

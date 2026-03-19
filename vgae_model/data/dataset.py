@@ -1,13 +1,21 @@
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/data_loading.py
+"""Dataset for converting SMILES + labels into PyTorch Geometric graphs.
+
+Each row in the source CSV becomes a `torch_geometric.data.Data` graph with:
+- `x`: atom feature matrix
+- `edge_index`: node adjacency list
+- `y`: regression label
+
+The stereochemistry-stripped SMILES is stored on the Data object as `smiles`.
+
+The code is based on https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/data_loading.py
+"""
+
 import torch
 import pandas as pd  # type: ignore[import-untyped]
-
 from rdkit import Chem
 from torch.utils.data import Dataset as TorchDataset
 from torch_geometric.data import Data as GeometricData  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
-
-
 from vgae_model.data.transforms import (
     get_atom_constants,
     atom_features,
@@ -16,6 +24,8 @@ from vgae_model.data.transforms import (
 
 
 class GraphMoleculeDataset(TorchDataset[GeometricData]):
+    """Load a CSV of molecules and featurize each item into a graph."""
+
     def __init__(
         self,
         csv_path: str,
@@ -45,6 +55,7 @@ class GraphMoleculeDataset(TorchDataset[GeometricData]):
     def __getitem__(
         self, idx: torch.Tensor | slice | list[int]
     ) -> GeometricData | list[GeometricData]:
+        """Return a single graph (or list of graphs) with featurized atoms for the requested indices."""
         if torch.is_tensor(idx):
             idx = idx.tolist()
         if isinstance(idx, slice):

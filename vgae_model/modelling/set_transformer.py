@@ -1,6 +1,11 @@
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/set_transformer_models.py
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/set_transformer_modules.py
-# Code originally from https://github.com/juho-lee/set_transformer
+"""Set Transformer model for creating graph embeddings from a set of nodes.
+
+The code is based on https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/set_transformer_models.py
+and https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/set_transformer_modules.py
+
+Code originally from https://github.com/juho-lee/set_transformer
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

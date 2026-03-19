@@ -121,3 +121,7 @@ Example existing logs you can inspect:
 - lightning_logs/sd_pretrain_all
 - lightning_logs/best_dr_test
 - lightning_logs/qm_7_test
+
+
+## AI usage
+During the development phase we used GitHub Copilot and other LLMs to speed up the process. We also used these tools for writing documentation and always checked the outputs.

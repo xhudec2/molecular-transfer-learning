@@ -1,3 +1,15 @@
+"""Lightning training.
+
+This module wraps Lightning `Trainer` construction and provides the task
+functions used by the CLI by the `vgae_model` module.
+
+Functions:
+- `pretrain`: train a model from scratch (no checkpoint)
+- `finetune`: optionally load a checkpoint and train for supervised regression
+- `test`: evaluate a checkpoint on the configured test split
+- `optimize_lr`: Optuna learning-rate sweep
+"""
+
 from lightning.pytorch.loggers import CSVLogger
 from lightning.pytorch.callbacks import (
     ModelCheckpoint,
@@ -14,6 +26,7 @@ import os
 
 
 def _get_datamodule(hyperparams: dict[str, Any]) -> GeometricDataModule:
+    """Create the Lightning DataModule from the hyperparameter dict."""
     return GeometricDataModule(
         batch_size=hyperparams["batch_size"],
         seed=hyperparams["seed"],
@@ -31,12 +44,18 @@ def _get_datamodule(hyperparams: dict[str, Any]) -> GeometricDataModule:
 def _get_model(
     hyperparams: dict[str, Any], scaler: StandardScaler, testing: bool = False
 ) -> VGAEModule:
+    """Build a model (fresh or loaded from checkpoint).
+
+    When `testing=False` and a checkpoint is provided, the regression head is
+    re-initialized and the backbone GNN parameters are frozen to allow for finetuning.
+    """
     if hyperparams["ckpt"] is None:
         return VGAEModule(
             num_features=hyperparams["max_atom_num"] + 27,
             lr=hyperparams["lr"],
             batch_size=hyperparams["batch_size"],
             scaler=scaler,
+            monitor_loss=hyperparams["monitor_loss"],
         )
 
     model = VGAEModule.load_from_checkpoint(
@@ -45,6 +64,7 @@ def _get_model(
         lr=hyperparams["lr"],
         batch_size=hyperparams["batch_size"],
         scaler=scaler,
+        monitor_loss=hyperparams["monitor_loss"],
     )
 
     if not testing:
@@ -56,6 +76,7 @@ def _get_model(
 
 
 def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
+    """Optimize learning rate with Optuna and save a trial-history plot."""
     dm = _get_datamodule(hyperparams)
 
     def objective(trial: optuna.trial.Trial) -> float:
@@ -68,7 +89,7 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
         stopper = EarlyStopping(
             monitor="val/rmse",
             mode="min",
-            patience=25,
+            patience=25,  # smaller patience than during finetuning to speedup hyperparam optimization
         )
 
         trainer = pl.Trainer(
@@ -99,6 +120,7 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
     for key, value in trial.params.items():
         print(f"    {key}: {value}")
 
+    # plot creation
     fig, axes = plt.subplots(1, 1, figsize=(4, 4))
     axes.plot([t.value for t in study.trials], "b-o", markersize=4)
     axes.axhline(
@@ -118,6 +140,7 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
 
 
 def pretrain(hyperparams: dict[str, Any]) -> None:
+    """Pretrain a model from scratch on the configured dataset."""
     if hyperparams["ckpt"] is not None:
         raise ValueError("Pretraining does not expect a checkpoint parameter.")
 
@@ -142,10 +165,13 @@ def pretrain(hyperparams: dict[str, Any]) -> None:
 
 
 def finetune(hyperparams: dict[str, Any]) -> None:
+    """Finetune a model (either from random initialization or a pretrained one)."""
     dm = _get_datamodule(hyperparams)
     model = _get_model(hyperparams, dm.scaler)
 
     logger = CSVLogger(save_dir=".", version=hyperparams["experiment_name"])
+
+    # We monitor val/rmse, as it seemed as the most "stable" metric during training
     checkpoint_callback = ModelCheckpoint(
         monitor="val/rmse",
         mode="min",
@@ -155,7 +181,7 @@ def finetune(hyperparams: dict[str, Any]) -> None:
     stopper = EarlyStopping(
         monitor="val/rmse",
         mode="min",
-        patience=100,
+        patience=100,  # kept the same as in https://www.nature.com/articles/s41467-024-45566-8
     )
 
     trainer = pl.Trainer(
@@ -175,6 +201,7 @@ def finetune(hyperparams: dict[str, Any]) -> None:
 
 
 def test(hyperparams: dict[str, Any]) -> None:
+    """Evaluate a checkpoint on the configured test split."""
     if hyperparams["ckpt"] is None:
         raise ValueError("Testing expects a checkpoint, specify it using --ckpt=PATH.")
 

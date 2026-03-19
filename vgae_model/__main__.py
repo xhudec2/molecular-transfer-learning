@@ -1,3 +1,5 @@
+"""CLI interface for training/evaluating the VGAE models."""
+
 from vgae_model.utils import pretrain, finetune, test, get_hparams, optimize_lr
 import lightning as pl
 import torch
@@ -5,6 +7,7 @@ import argparse
 
 
 def main() -> None:
+    """Parse CLI args, build the hyperparameter dict, and run a task."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", choices=["sd", "dr", "lipo", "qm7"], required=True)
     parser.add_argument(

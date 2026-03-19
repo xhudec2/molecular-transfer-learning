@@ -1,4 +1,10 @@
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
+"""Backbone for VGAE model.
+
+The model consists of a VGAE encoder (with 3 GCN layers) and a Set Transformer readout layer to get graph-level embeddings.
+
+The code is based on https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
+"""
+
 from torch_geometric.nn.models import VGAE  # type: ignore
 import torch.nn as nn
 from torch import Tensor

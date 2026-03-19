@@ -1,4 +1,8 @@
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/chemprop_featurisation.py
+"""Transforms for featurising molecules for VGAE models.
+
+The code is based on https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/chemprop_featurisation.py
+"""
+
 from rdkit import Chem
 from typing import Sequence, Any
 
@@ -13,10 +17,12 @@ def remove_smiles_stereo(s: str) -> str:
 def onek_encoding_unk(value: int, choices: Sequence[int]) -> list[int]:
     """
     Creates a one-hot encoding with an extra category for uncommon values.
-    :param value: The value for which the encoding should be one.
-    :param choices: A list of possible values.
-    :return: A one-hot encoding of the :code:`value` in a list of length :code:`len(choices) + 1`.
-             If :code:`value` is not in :code:`choices`, then the final element in the encoding is 1.
+    Args:
+        value: The value for which the encoding should be one.
+        choices: A list of possible values.
+    Returns:
+        A one-hot encoding of the `value` in a list of length `len(choices) + 1`.
+        If `value` is not in `choices`, then the final element in the encoding is 1.
     """
     encoding = [0] * len(choices)
     index = choices.index(value) if value in choices else -1

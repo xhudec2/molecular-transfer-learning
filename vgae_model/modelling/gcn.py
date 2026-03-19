@@ -1,4 +1,11 @@
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
+"""GCN encoder for VGAE model.
+
+The model consists of 3 GCN layers with ReLU activations and batch normalization, outputting node-level latent embeddings.
+The last layer is split into two GCN layers to get the mean and log-std of the latent distribution for the VGAE.
+
+The code is based on https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/graph_models.py
+"""
+
 import torch_geometric  # type: ignore
 from torch_geometric.nn import GCNConv, BatchNorm  # type: ignore
 import torch.nn as nn

@@ -1,4 +1,12 @@
-# https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/data_loading.py
+"""Lightning DataModule for molecular graphs.
+
+Creates `GraphMoleculeDataset` instances for train/val/test CSVs and returns
+PyTorch Geometric DataLoaders. If `use_standard_scaler=True`, fits a
+`StandardScaler` on the training labels and uses it to normalize targets.
+
+The code is based on https://github.com/davidbuterez/multi-fidelity-gnns-for-drug-discovery-and-quantum-mechanics/blob/main/multifidelity_gnn/src/data_loading.py
+"""
+
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import lightning as pl
@@ -12,6 +20,8 @@ from vgae_model.data.dataset import GraphMoleculeDataset
 
 
 class GeometricDataModule(pl.LightningDataModule):
+    """DataModule for graph molecules."""
+
     def __init__(
         self,
         batch_size: int,
