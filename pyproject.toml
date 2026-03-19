@@ -19,4 +19,5 @@ dependencies = [
     "seaborn>=0.13.2",
     "torch>=2.10.0",
     "torch-geometric>=2.7.0",
+    "umap-learn[plot]>=0.5.11",
 ]
