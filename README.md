@@ -27,11 +27,14 @@ This creates train / val / test splits:
 - data/qm7_splits
 
 Data sources used by the download script:
-- [QM7 (DeepChem)](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/qm7.csv)
-- [Lipophilicity (DeepChem)](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv)
-- PubChem AID 504329 SD/DR data is retrieved via the [mf-pcba repository](https://github.com/davidbuterez/mf-pcba/)
+- [QM7 (DeepChem)](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/qm7.csv) [1]
+- [Lipophilicity (DeepChem)](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv) [1]
+- PubChem AID 504329 SD/DR data is retrieved via the [mf-pcba repository](https://github.com/davidbuterez/mf-pcba/) [2]
 
-**Note**: This step is time consuming and takes around 40 minutes to run. It is possible to run ```./get_datasets_simple.sh``` to skip downloading the MF-PCBA dataset.
+[1] - 10.48550/arXiv.1703.00564
+[2] 10.1021/acs.jcim.2c01569
+
+**Note**: This step is time consuming and takes around 40 minutes to run. It is possible to run ```./get_datasets_simple.sh``` to skip downloading the MF-PCBA dataset, or unzip `data_splits.zip`.
 
 ## Repository structure
 
