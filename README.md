@@ -130,6 +130,9 @@ Each model contains:
 
 See [results/README.md](results/README.md) for detailed documentation on interpreting the results.
 
+## Models
+
+We do not provide any trained models in the dataset as they are large and take up a lot of space.
 
 ## AI usage
 During the development phase we used GitHub Copilot and other LLMs to speed up the process. We also used these tools for writing documentation and always checked the outputs.
