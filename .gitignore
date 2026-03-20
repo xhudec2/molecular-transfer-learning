@@ -208,6 +208,3 @@ __marimo__/
 
 # Mac...
 .DS_store
-
-# data
-*.csv
