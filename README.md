@@ -134,6 +134,18 @@ Each model contains:
 
 See [results/README.md](results/README.md) for detailed documentation on interpreting the results.
 
+To reproduce plots and tabular data from the report, use 
+
+    uv run python report_data_scripts/plots.py
+
+and
+
+    uv run python report_data_scripts/tabular_data.py
+
+
+**Note**: You need the data splits to run this code.
+
+
 ## Models
 
 We do not provide any trained models in the dataset as they are large and take up a lot of space.
