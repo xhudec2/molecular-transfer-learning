@@ -1,0 +1,19 @@
+batch_size: 32
+ckpt: lightning_logs/dr_ft_final/lr_1/checkpoints/epoch=95-step=2208.ckpt
+experiment_name: dr_ft_final_test/1
+label_column_name: DR
+lr: 2.436653416909395e-05
+max_atom_num: 53
+max_epochs: 200
+monitor_loss: val/rmse
+num_cores: !!python/tuple
+- 15
+- 15
+- 15
+seed: 411246417
+separate_test_path: ./data/dr_splits/dr_test.csv
+separate_valid_path: ./data/dr_splits/dr_val.csv
+smiles_column: smiles
+task: test
+train_path: ./data/dr_splits/dr_train.csv
+
