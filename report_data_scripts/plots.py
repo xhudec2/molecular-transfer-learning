@@ -111,7 +111,7 @@ def make_umap() -> None:
 
     for handle in leg.legend_handles:
         handle.set_markersize(10)
-    fig.savefig("figures/umap_projection.png", dpi=300)
+    fig.savefig("results/figures/umap_projection.png", dpi=300)
 
 
 make_size_dist()
