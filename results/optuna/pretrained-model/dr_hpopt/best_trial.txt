@@ -1,0 +1,5 @@
+Number of finished trials: 10
+Best trial:
+  Best Validation RMSE: 0.32523760199546814
+  Best Params: 
+    lr: 2.436653416909395e-05
