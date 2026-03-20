@@ -50,7 +50,7 @@ def make_size_dist() -> None:
     ax.set_xbound(0, 800)
     ax.set_xlabel("Molecular Weight")
     ax.set_title("Molecular Weight Distribution of datasets")
-    fig.savefig("figures/weight_distribution.png", dpi=300)
+    fig.savefig("results/figures/weight_distribution.png", dpi=300)
 
 
 def make_maccs_keys(smiles: str) -> np.ndarray:
