@@ -56,7 +56,12 @@ SD = {
 
 
 def get_hparams(
-    dataset: str, task: str, experiment_name: None | str, ckpt: None | str, lr: float
+    dataset: str,
+    task: str,
+    experiment_name: None | str,
+    ckpt: None | str,
+    lr: float,
+    seed: float,
 ) -> dict[str, Any]:
     """Construct the hyperparameter dict for a given dataset/task.
 
@@ -66,13 +71,16 @@ def get_hparams(
         experiment_name: Lightning log folder name under `lightning_logs/`.
         ckpt: Optional checkpoint for finetuning, not optional for testing.
         lr: Learning rate.
-
+        seed: Random seed for reproducibility. If None, a random seed is generated.
     Returns:
         A dictionary containing training settings and dataset CSV paths.
     """
-    SEED = randint(0, 2**32 - 1)
     hyperparams = BASE_CONFIG.copy()
-    hyperparams["seed"] = SEED
+    if seed is None:
+        SEED = randint(0, 2**32 - 1)
+        hyperparams["seed"] = SEED
+    else:
+        hyperparams["seed"] = seed
     hyperparams["task"] = task
 
     hyperparams["experiment_name"] = experiment_name

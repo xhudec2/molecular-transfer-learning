@@ -14,15 +14,16 @@ def main() -> None:
         "--task", choices=["pretrain", "finetune", "test", "hpopt"], required=True
     )
     parser.add_argument("--lr", type=float, default=0.00005)
+    parser.add_argument("--seed", type=float, default=None)
     parser.add_argument("--experiment-name", type=str, default=None)
     parser.add_argument("--ckpt", type=str, default=None)
     args = parser.parse_args()
 
     hyperparams = get_hparams(
-        args.dataset, args.task, args.experiment_name, args.ckpt, args.lr
+        args.dataset, args.task, args.experiment_name, args.ckpt, args.lr, args.seed
     )
 
-    pl.seed_everything(hyperparams["seed"])
+    pl.seed_everything(hyperparams["seed"], workers=True)
     torch.set_float32_matmul_precision("medium")
     match hyperparams["task"]:
         case "pretrain":

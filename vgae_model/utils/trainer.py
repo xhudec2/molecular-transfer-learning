@@ -80,7 +80,8 @@ def optimize_lr(hyperparams: dict[str, Any], n_trials: int = 10) -> None:
     dm = _get_datamodule(hyperparams)
 
     def objective(trial: optuna.trial.Trial) -> float:
-        lr = trial.suggest_float("lr", 1e-6, 0.001, log=True)
+        max_lr = 1e-3 if hyperparams["ckpt"] is None else 1e-4
+        lr = trial.suggest_float("lr", 1e-6, max_lr, log=True)
         trial_hyperparams = hyperparams.copy()
         trial_hyperparams["lr"] = lr
 
