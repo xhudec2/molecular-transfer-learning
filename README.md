@@ -31,53 +31,44 @@ Data sources used by the download script:
 - [Lipophilicity (DeepChem)](https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv)
 - PubChem AID 504329 SD/DR data is retrieved via the [mf-pcba repository](https://github.com/davidbuterez/mf-pcba/)
 
-**Note**: This step is time consuming and takes around 40 minutes to run.
+**Note**: This step is time consuming and takes around 40 minutes to run. It is possible to run ```./get_datasets_simple.sh``` to skip downloading the MF-PCBA dataset.
 
 ## Repository structure
 
     molecular-transfer-learning
-    ├── download_data.sh
+    ├── get_datasets.sh
+    ├── get_datasets_simple.sh
     ├── pyproject.toml
     ├── README.md
-    ├── uv.lock
-    ├── checkpoints
-    ├── data
-    │   ├── dr_splits
-    │   │   ├── dr_test.csv
-    │   │   ├── dr_train.csv
-    │   │   └── dr_val.csv
-    │   ├── lipo_splits
-    │   │   ├── lipo_test.csv
-    │   │   ├── lipo_train.csv
-    │   │   └── lipo_val.csv
-    │   ├── qm7_splits
-    │   │   ├── qm7_test.csv
-    │   │   ├── qm7_train.csv
-    │   │   └── qm7_val.csv
-    │   └── sd_splits
-    │       ├── sd_all.csv
-    │       ├── sd_test.csv
-    │       ├── sd_train.csv
-    │       └── sd_val.csv
-    ├── lightning_logs
-    ├── notebooks
-    └── vgae_model
+    ├── data/                      # Data path 
+    ├── notebooks/                 # Notebooks for faster experimentaion
+    ├── report_data_scripts/       # Report data generation scripts       
+    │   ├── plots.py
+    │   └── tabular_data.py 
+    ├── preprocessing/             # Data preprocessing scripts
+    │   ├── clean.py
+    │   └── splits.py
+    ├── results/                   # All experimental results
+    │   ├── dr/                    
+    │   ├── lipo/                  
+    │   ├── qm7/                   
+    │   ├── optuna/                
+    │   ├── tables/                
+    │   └── README.md              
+    └── vgae_model/
         ├── __init__.py
         ├── __main__.py
-        ├── data
-        │   ├── __init__.py
+        ├── data/                  # Data loading and preprocessing
         │   ├── datamodule.py
         │   ├── dataset.py
         │   └── transforms.py
-        ├── modelling
-        │   ├── __init__.py
+        ├── modelling/             # Model architecture
         │   ├── backbone.py
         │   ├── gcn.py
         │   ├── regressor.py
         │   ├── set_transformer.py
         │   └── vgaemodule.py
-        └── utils
-            ├── __init__.py
+        └── utils/                 # Training utilities
             ├── hyperparams.py
             └── trainer.py
 
@@ -90,37 +81,54 @@ The training/evaluation of the VGAE model is run via:
 Arguments:
 - `--dataset`: sd, dr, lipo, qm7
 - `--task`: pretrain, finetune, test
-- `--experiment-name`: name of the output folder under lightning_logs
+- `--experiment-name`: name of the output folder (results will be saved to `results/{dataset}/{model_type}/{experiment_name}`)
 - `--ckpt`: path to a checkpoint file (required for `test`, used in `finetune` for transfer learning)
 - `--lr`: learning rate (optional)
+- `--seed` random seed (optional)
 
 ### Pretrain (example: SD)
 
     uv run python -m vgae_model --dataset sd --task pretrain --experiment-name sd_pretrain_all
 
+### Hyperparameter optimization (example: DR from SD checkpoint)
+    
+    uv run python -m vgae_model --dataset dr --task hpopt --experiment-name dr_ft_hpopt --ckpt path/to/sd/checkpoint.ckpt
+
 ### Finetune (example: DR from SD checkpoint)
 
-    uv run python -m vgae_model --dataset dr --task finetune --experiment-name dr_ft --ckpt lightning_logs/sd_pretrain_all/checkpoints/epoch=199-step=124400.ckpt
+    uv run python -m vgae_model --dataset dr --task finetune --experiment-name dr_ft --ckpt path/to/sd/checkpoint.ckpt
 
 ### Test set evaluation (example: DR)
 
-    uv run python -m vgae_model --dataset dr --task test --experiment-name best_dr_test --ckpt lightning_logs/version_20/checkpoints/epoch=14-step=330.ckpt
+    uv run python -m vgae_model --dataset dr --task test --experiment-name best_dr_test --ckpt path/to/checkpoint.ckpt
 
-## Expected outputs
+## Results
 
-For each experiment name NAME, outputs are written to:
+All experiment outputs are saved to the `results/` directory, organized by dataset and model type:
 
-- lightning_logs/NAME/hparams.yaml
-  - run configuration (dataset, lr, seed, paths, etc.)
-- lightning_logs/NAME/metrics.csv
-  - logged metrics (train/val/test depending on task)
-- lightning_logs/NAME/checkpoints
-  - saved checkpoints
+```
+results/
+├── dr/           # Dose Response dataset results
+├── lipo/         # Lipophilicity dataset results
+├── qm7/          # QM7 dataset results
+├── optuna/       # Hyperparameter optimization trials
+├── tables/       # Summary tables and statistics
+├── figures/      # Dataset visualization
+└── README.md     # Detailed results documentation
+```
 
-Example existing logs you can inspect:
-- lightning_logs/sd_pretrain_all
-- lightning_logs/best_dr_test
-- lightning_logs/qm_7_test
+For each dataset, results are organized as:
+
+- `{dataset}/non-pretrained/` — Models trained from scratch
+- `{dataset}/pretrained/` — Models using transfer learning
+- `{dataset}/rf/` — Random Forest baseline
+
+Each model contains:
+- `hparams.yaml` — Hyperparameters used for training
+- `metrics.csv` — Test set metrics (MAE, RMSE, R2)
+- Checkpoints saved during training
+
+See [results/README.md](results/README.md) for detailed documentation on interpreting the results.
 
 
 ## AI usage
