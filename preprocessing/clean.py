@@ -103,6 +103,9 @@ def main() -> None:
     root = Path("data")
     features = {"SD": ["SD", "DR"], "Lipophilicity": ["exp"], "qm7": ["u0_atom"]}
     for dataset in root.glob("*.csv"):
+        if dataset.stem not in features.keys():
+            print(f"Skipping {dataset} as it is not in the features dictionary.")
+            continue
         df = pd.read_csv(dataset)
         if dataset.stem == "SD":
             df = df.rename(columns={"neut-smiles": "smiles"})
