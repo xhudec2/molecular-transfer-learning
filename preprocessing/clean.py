@@ -47,16 +47,19 @@ def standardize_smiles(smiles: str) -> None | str:
 
 
 def standardize_data(df: pd.DataFrame, feature_cols: list[str]) -> pd.DataFrame:
-    original_len = len(df)
+    original_lengths = {feature: len(df[feature].dropna()) for feature in feature_cols}
     df["smiles"] = df["smiles"].apply(standardize_smiles)
     df = df[["smiles"] + feature_cols]
     df = df[~df["smiles"].isna()]
     df = df[df["smiles"].apply(get_max_atomic_number) <= MAX_ATOM_NUM]
     df = df[df["smiles"].apply(get_num_atoms) <= MAX_ATOMS_IN_MOL]
 
-    failed = original_len - len(df)
+    failed = {
+        feature: original_lengths[feature] - len(df[feature].dropna())
+        for feature in feature_cols
+    }
     print("\nStandardization results:")
-    print(f"  Original: {original_len} molecules")
+    print(f"  Original: {original_lengths} molecules")
     print(f"  Standardized: {len(df)} molecules")
     print(f"  Failed: {failed} molecules")
     return df
